@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { getProjects } from "../service/projectService";
-
+import { getProjects } from "../../service/projectService";
+import { useNavigate } from "react-router-dom";
 function Projects() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -149,17 +150,20 @@ function Projects() {
                         <div className="flex justify-end gap-2">
                           <button
                             type="button"
+                            onClick={() =>
+                              navigate(`/projects/${project.id}/tickets`)
+                            }
                             className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
                           >
                             View
                           </button>
 
-                          <button
+                          {/* <button
                             type="button"
                             className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
                           >
                             Edit
-                          </button>
+                          </button> */}
                         </div>
                       </td>
                     </tr>
