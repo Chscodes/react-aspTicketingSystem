@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
+import AddTicketForm from "../../components/forms/AddTicketForm";
+import Modal from "../../components/Modal";
 function Tickets() {
   const navigate = useNavigate();
   const { projectId } = useParams();
-
+  const [isAddTicketModalOpen, setIsAddTicketModalOpen] = useState(false);
   // UI ONLY - temporary ticket data
   const tickets = [
     {
@@ -105,6 +107,7 @@ function Tickets() {
 
           <button
             type="button"
+            onClick={() => setIsAddTicketModalOpen(true)}
             className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             + Create Ticket
@@ -212,6 +215,23 @@ function Tickets() {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={isAddTicketModalOpen}
+        onClose={() => setIsAddTicketModalOpen(false)}
+        title="Add New Ticket"
+        size="lg"
+      >
+        <AddTicketForm
+          onCancel={() => setIsAddTicketModalOpen(false)}
+          onSubmit={(data) => {
+            console.log("New ticket:", data);
+
+            // UI ONLY for now
+            setIsAddTicketModalOpen(false);
+          }}
+        />
+      </Modal>
     </div>
   );
 }

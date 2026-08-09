@@ -13,7 +13,7 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(p => p.isDeleted)
             .HasDefaultValue(false);
 
-        //seed/s
-        builder.HasData(ProjectSeed.Data);
+        // //seed/s
+        // builder.HasData(ProjectSeed.Data);
     }
 }

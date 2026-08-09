@@ -1,49 +1,45 @@
 using backend.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Data.Seeds;
 
-public static class ProjectSeed
+public static class ProjectSeeder
 {
-    public static Project[] Data => new[]
+    public static async Task SeedAsync(AppDbContext context)
     {
-        new Project
+        var projects = new[]
         {
-            id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-            project_name = "SBF Project",
-            remarks = "",
-            isDeleted = false
-        },
+            "SBF Project",
+            "Yilujia Accounting Project",
+            "MUANA HRIS Project",
+            "Suntech Accounting Project",
+            "Concord ERP Project",
+            "MJC Accounting Project",
+            "MJK HRIS Project",
+        };
 
-        new Project
+        foreach (var projectName in projects)
         {
-            id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-            project_name = "Yilujia Accounting Project",
-            remarks = "",
-            isDeleted = false
-        },
+            var exists = await context.Projects
+                .AnyAsync(p => p.project_name == projectName);
 
-        new Project
-        {
-            id = Guid.Parse("33333333-3333-3333-3333-333333333333"),
-            project_name = "MUANA HRIS Project",
-            remarks = "",
-            isDeleted = false
-        },
+            if (!exists)
+            {
+                context.Projects.Add(new Project
+                {
+                    project_name = projectName,
+                    remarks = string.Empty,
+                    isDeleted = false
+                });
 
-        new Project
-        {
-            id = Guid.Parse("44444444-4444-4444-4444-444444444444"),
-            project_name = "Suntech Accounting Project",
-            remarks = "",
-            isDeleted = false
-        },
-
-        new Project
-        {
-            id = Guid.Parse("55555555-5555-5555-5555-555555555555"),
-            project_name = "Concord ERP Project",
-            remarks = "",
-            isDeleted = false
+                Console.WriteLine($"Created Project: {projectName}");
+            }
+            else
+            {
+                Console.WriteLine($"Project already exists: {projectName}");
+            }
         }
-    };
+
+        await context.SaveChangesAsync();
+    }
 }

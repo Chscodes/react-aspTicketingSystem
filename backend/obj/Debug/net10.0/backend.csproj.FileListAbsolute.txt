@@ -122,3 +122,4 @@ C:\Users\Chester\Documents\Systems\For me\aspnet-react-mvc\backend\obj\Debug\net
 C:\Users\Chester\Documents\Systems\For me\aspnet-react-mvc\backend\obj\Debug\net10.0\backend.pdb
 C:\Users\Chester\Documents\Systems\For me\aspnet-react-mvc\backend\obj\Debug\net10.0\backend.genruntimeconfig.cache
 C:\Users\Chester\Documents\Systems\For me\aspnet-react-mvc\backend\obj\Debug\net10.0\ref\backend.dll
+C:\Users\Chester\Documents\Systems\For me\aspnet-react-mvc\backend\obj\Debug\net10.0\backend.sourcelink.json

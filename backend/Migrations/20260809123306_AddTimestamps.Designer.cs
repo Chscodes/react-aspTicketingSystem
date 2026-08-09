@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260809123306_AddTimestamps")]
+    partial class AddTimestamps
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,6 +53,62 @@ namespace backend.Migrations
                     b.HasKey("id");
 
                     b.ToTable("Projects");
+
+                    b.HasData(
+                        new
+                        {
+                            id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            isDeleted = false,
+                            project_name = "SBF Project",
+                            remarks = "",
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            isDeleted = false,
+                            project_name = "Yilujia Accounting Project",
+                            remarks = "",
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            isDeleted = false,
+                            project_name = "MUANA HRIS Project",
+                            remarks = "",
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            id = new Guid("44444444-4444-4444-4444-444444444444"),
+                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            isDeleted = false,
+                            project_name = "Suntech Accounting Project",
+                            remarks = "",
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            id = new Guid("55555555-5555-5555-5555-555555555555"),
+                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            isDeleted = false,
+                            project_name = "Concord ERP Project",
+                            remarks = "",
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            id = new Guid("66666666-6666-6666-6666-666666666666"),
+                            createdAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            isDeleted = false,
+                            project_name = "MJC Accounting Project",
+                            remarks = "",
+                            updatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
                 });
 
             modelBuilder.Entity("backend.Models.Ticket", b =>

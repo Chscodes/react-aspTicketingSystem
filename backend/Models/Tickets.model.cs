@@ -1,10 +1,11 @@
 // Ticket.model.cs
 using backend.Models.Enumerations;
+using backend.Models.Base;
 namespace backend.Models;
-public class Ticket
+public class Ticket : BaseEntity
 {
     // public int id { get; set; }
-     public Guid id { get; set; } = Guid.NewGuid();// GUID is for UUID primary Key
+    //  public Guid id { get; set; } = Guid.NewGuid();// GUID is for UUID primary Key (nilagay ko sa baseEntity)
 
     public Guid? project_id { get; set; }
 

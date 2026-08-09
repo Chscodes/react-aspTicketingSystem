@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
-
+using backend.Data.Seeds;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -32,6 +32,15 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+//for seeds 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<AppDbContext>();
+
+    await DatabaseSeeder.SeedAsync(context);
+}
 
 app.UseCors("ReactClient");
 

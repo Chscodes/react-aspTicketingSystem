@@ -1,9 +1,10 @@
 // Project.model.cs
+using backend.Models.Base;
 namespace backend.Models;
 
-public class Project
+public class Project : BaseEntity
 {
-    public Guid id { get; set; } = Guid.NewGuid(); // GUID is for UUID primary Key
+    //  public Guid id { get; set; } = Guid.NewGuid();// GUID is for UUID primary Key (nilagay ko sa baseEntity)
 
     public string project_name { get; set; } = string.Empty;
 
