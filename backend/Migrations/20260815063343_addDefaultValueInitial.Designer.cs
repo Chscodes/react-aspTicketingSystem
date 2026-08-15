@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260809120730_addedMJCPRojectSeed")]
-    partial class addedMJCPRojectSeed
+    [Migration("20260815063343_addDefaultValueInitial")]
+    partial class addDefaultValueInitial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,6 +31,9 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime(3)");
+
                     b.Property<bool>("isDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("tinyint(1)")
@@ -44,53 +47,12 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime>("updatedAt")
+                        .HasColumnType("datetime(3)");
+
                     b.HasKey("id");
 
                     b.ToTable("Projects");
-
-                    b.HasData(
-                        new
-                        {
-                            id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            isDeleted = false,
-                            project_name = "SBF Project",
-                            remarks = ""
-                        },
-                        new
-                        {
-                            id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            isDeleted = false,
-                            project_name = "Yilujia Accounting Project",
-                            remarks = ""
-                        },
-                        new
-                        {
-                            id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            isDeleted = false,
-                            project_name = "MUANA HRIS Project",
-                            remarks = ""
-                        },
-                        new
-                        {
-                            id = new Guid("44444444-4444-4444-4444-444444444444"),
-                            isDeleted = false,
-                            project_name = "Suntech Accounting Project",
-                            remarks = ""
-                        },
-                        new
-                        {
-                            id = new Guid("55555555-5555-5555-5555-555555555555"),
-                            isDeleted = false,
-                            project_name = "Concord ERP Project",
-                            remarks = ""
-                        },
-                        new
-                        {
-                            id = new Guid("66666666-6666-6666-6666-666666666666"),
-                            isDeleted = false,
-                            project_name = "MJC Accounting Project",
-                            remarks = ""
-                        });
                 });
 
             modelBuilder.Entity("backend.Models.Ticket", b =>
@@ -107,26 +69,37 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime(3)");
+
                     b.Property<string>("description")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
 
                     b.Property<Guid?>("project_id")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("reference_no")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int>("status")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime>("updatedAt")
+                        .HasColumnType("datetime(3)");
 
                     b.HasKey("id");
 
-                    b.HasIndex("project_id");
+                    b.HasIndex("project_id", "reference_no")
+                        .IsUnique();
 
                     b.ToTable("Tickets");
                 });

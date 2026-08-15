@@ -6,7 +6,7 @@ using backend.Models;
 namespace backend.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class ProjectsController : ControllerBase
 {
     private readonly AppDbContext _context;

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class initUUIDMOdels : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,7 +23,9 @@ namespace backend.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     remarks = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                    isDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false, defaultValue: false),
+                    createdAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    updatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -37,7 +39,7 @@ namespace backend.Migrations
                 {
                     id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     project_id = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    reference_no = table.Column<string>(type: "longtext", nullable: false)
+                    reference_no = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     contact_person = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -46,7 +48,9 @@ namespace backend.Migrations
                     description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     status = table.Column<int>(type: "int", nullable: false),
-                    isDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                    isDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    createdAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    updatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -61,9 +65,10 @@ namespace backend.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tickets_project_id",
+                name: "IX_Tickets_project_id_reference_no",
                 table: "Tickets",
-                column: "project_id");
+                columns: new[] { "project_id", "reference_no" },
+                unique: true);
         }
 
         /// <inheritdoc />

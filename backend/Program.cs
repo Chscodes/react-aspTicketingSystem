@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Data.Seeds;
+using backend.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -31,7 +32,13 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// TICKETS SERVICES
+builder.Services.AddScoped<TicketService>();
+builder.Services.AddScoped<TicketReferenceNumberService>();
+
 var app = builder.Build();
+
+
 //for seeds 
 using (var scope = app.Services.CreateScope())
 {
@@ -44,7 +51,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseCors("ReactClient");
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.MapControllers();
 

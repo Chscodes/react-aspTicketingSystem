@@ -1,4 +1,4 @@
-function AddTicketForm({ onCancel, onSubmit }) {
+function AddTicketForm({ onCancel, onSubmit, projectId }) {
   const statusOptions = [
     {
       value: "New",
@@ -25,15 +25,16 @@ function AddTicketForm({ onCancel, onSubmit }) {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    // UI ONLY
     const formData = new FormData(event.currentTarget);
 
     const data = {
-      reference_no: formData.get("reference_no"),
+      project_id: projectId,
+
       contact_person: formData.get("contact_person"),
+
       contact_email: formData.get("contact_email"),
+
       description: formData.get("description"),
-      status: formData.get("status"),
     };
 
     console.log("Ticket form:", data);
@@ -47,7 +48,7 @@ function AddTicketForm({ onCancel, onSubmit }) {
     <form onSubmit={handleSubmit}>
       <div className="space-y-5">
         {/* Reference Number */}
-        <div>
+        {/* <div>
           <label
             htmlFor="reference_no"
             className="mb-2 block text-sm font-medium text-gray-700"
@@ -62,7 +63,7 @@ function AddTicketForm({ onCancel, onSubmit }) {
             placeholder="Enter reference number"
             className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
           />
-        </div>
+        </div> */}
 
         {/* Contact Person + Email */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

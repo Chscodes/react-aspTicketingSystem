@@ -13,6 +13,14 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(p => p.isDeleted)
             .HasDefaultValue(false);
 
+             // Created At
+        builder.Property(t => t.createdAt)
+            .HasColumnType("datetime(6)");
+
+        // Updated At
+        builder.Property(t => t.updatedAt)
+            .HasColumnType("datetime(6)");
+
         // //seed/s
         // builder.HasData(ProjectSeed.Data);
     }

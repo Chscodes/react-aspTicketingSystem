@@ -38,7 +38,7 @@ namespace backend.Data
             return base.SaveChangesAsync(cancellationToken);
         }
 
-        private void UpdateTimestamps()
+      private void UpdateTimestamps()
         {
             var entries = ChangeTracker
                 .Entries<BaseEntity>();
@@ -47,15 +47,24 @@ namespace backend.Data
             {
                 if (entry.State == EntityState.Added)
                 {
-                    entry.Entity.createdAt = DateTime.UtcNow;
-                    entry.Entity.updatedAt = DateTime.UtcNow;
+                    var now = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(
+                        DateTime.UtcNow,
+                        "Singapore Standard Time"
+                    );
+
+                    entry.Entity.createdAt = now;
+                    entry.Entity.updatedAt = now;
                 }
 
                 if (entry.State == EntityState.Modified)
                 {
-                    entry.Entity.updatedAt = DateTime.UtcNow;
+                    var now = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(
+                        DateTime.UtcNow,
+                        "Singapore Standard Time"
+                    );
 
-                    // Prevent createdAt from being changed
+                    entry.Entity.updatedAt = now;
+
                     entry.Property(e => e.createdAt).IsModified = false;
                 }
             }

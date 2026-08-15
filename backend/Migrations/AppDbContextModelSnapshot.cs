@@ -49,7 +49,7 @@ namespace backend.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Projects");
+                    b.ToTable("Projects", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Ticket", b =>
@@ -74,26 +74,31 @@ namespace backend.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<bool>("isDeleted")
-                        .HasColumnType("tinyint(1)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
 
                     b.Property<Guid?>("project_id")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("reference_no")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<int>("status")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<DateTime>("updatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("id");
 
-                    b.HasIndex("project_id");
+                    b.HasIndex("project_id", "reference_no")
+                        .IsUnique();
 
-                    b.ToTable("Tickets");
+                    b.ToTable("Tickets", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Ticket", b =>

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AddTicketForm from "../../components/forms/AddTicketForm";
 import Modal from "../../components/Modal";
+
+import { createTicket } from "../../service/Ticket/TicketService";
 function Tickets() {
   const navigate = useNavigate();
   const { projectId } = useParams();
@@ -69,6 +71,22 @@ function Tickets() {
 
       default:
         return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  const handleCreateTicket = async (data) => {
+    try {
+      console.log("Sending ticket:", data);
+
+      const createdTicket = await createTicket(data); // send to service frontend
+
+      console.log("Created ticket:", createdTicket);
+
+      setIsAddTicketModalOpen(false);
+    } catch (error) {
+      console.error("Failed to create ticket:", error);
+
+      console.error("Server response:", error.response?.data);
     }
   };
 
@@ -223,13 +241,9 @@ function Tickets() {
         size="lg"
       >
         <AddTicketForm
+          projectId={projectId}
           onCancel={() => setIsAddTicketModalOpen(false)}
-          onSubmit={(data) => {
-            console.log("New ticket:", data);
-
-            // UI ONLY for now
-            setIsAddTicketModalOpen(false);
-          }}
+          onSubmit={handleCreateTicket}
         />
       </Modal>
     </div>
