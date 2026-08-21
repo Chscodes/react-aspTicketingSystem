@@ -1,92 +1,72 @@
-import { useState } from "react";
+import { toast } from "sonner";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import AddTicketForm from "../../components/forms/AddTicketForm";
-import Modal from "../../components/Modal";
 
-import { createTicket } from "../../service/Ticket/TicketService";
+// Services
+import {
+  createTicket,
+  fetchTicketsData,
+} from "../../service/Ticket/TicketService";
+
+// Components
+import Modal from "../../components/Modal";
+import AddTicketForm from "../../components/forms/AddTicketForm";
+
+// utilss
+import {
+  getStatusStyle,
+  getStatusLabel,
+} from "../../utils/Tickets/ticketStatus";
+
 function Tickets() {
   const navigate = useNavigate();
   const { projectId } = useParams();
+
   const [isAddTicketModalOpen, setIsAddTicketModalOpen] = useState(false);
-  // UI ONLY - temporary ticket data
-  const tickets = [
-    {
-      id: 1,
-      reference_no: "TKT-0001",
-      status: "NEW",
-      contact_person: "John Doe",
-      contact_email: "john@example.com",
-      description: "Unable to access the accounting system.",
-    },
-    {
-      id: 2,
-      reference_no: "TKT-0002",
-      status: "On Review",
-      contact_person: "Jane Smith",
-      contact_email: "jane@example.com",
-      description: "Request for additional user account.",
-    },
-    {
-      id: 3,
-      reference_no: "TKT-0003",
-      status: "In-progress",
-      contact_person: "Michael Santos",
-      contact_email: "michael@example.com",
-      description: "System is experiencing slow response.",
-    },
-    {
-      id: 4,
-      reference_no: "TKT-0004",
-      status: "Support Will Contact You",
-      contact_person: "Robert Cruz",
-      contact_email: "robert@example.com",
-      description: "Request for technical support.",
-    },
-    {
-      id: 5,
-      reference_no: "TKT-0005",
-      status: "Closed",
-      contact_person: "Sarah Garcia",
-      contact_email: "sarah@example.com",
-      description: "Password reset request.",
-    },
-  ];
+  const [ticketData, setTicketData] = useState([]);
 
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case "NEW":
-        return "bg-blue-100 text-blue-700";
-
-      case "On Review":
-        return "bg-yellow-100 text-yellow-700";
-
-      case "Support Will Contact You":
-        return "bg-purple-100 text-purple-700";
-
-      case "In-progress":
-        return "bg-orange-100 text-orange-700";
-
-      case "Closed":
-        return "bg-green-100 text-green-700";
-
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
-  const handleCreateTicket = async (data) => {
+  const fetchTickets = useCallback(async () => {
     try {
-      console.log("Sending ticket:", data);
+      const res = await fetchTicketsData(projectId);
 
-      const createdTicket = await createTicket(data); // send to service frontend
+      setTicketData(res.data);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to fetch tickets.");
+    }
+  }, [projectId]);
 
-      console.log("Created ticket:", createdTicket);
+  useEffect(() => {
+    if (projectId) {
+      // fetchTickets intentionally updates state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchTickets();
+    }
+  }, [projectId, fetchTickets]);
 
+  const handleCreateTicket = async (payload) => {
+    const promise = createTicket(payload);
+
+    toast.promise(promise, {
+      loading: "Creating ticket...",
+
+      success: (res) => {
+        return res.data?.message || "Ticket created successfully!";
+      },
+
+      error: (error) =>
+        error.response?.data?.message || "Failed to create ticket.",
+    });
+
+    try {
+      await promise;
+
+      // Close modal after successful creation
       setIsAddTicketModalOpen(false);
+
+      // Refresh ticket list
+      await fetchTickets();
     } catch (error) {
       console.error("Failed to create ticket:", error);
-
-      console.error("Server response:", error.response?.data);
     }
   };
 
@@ -117,7 +97,6 @@ function Tickets() {
               View and manage tickets for this project
             </p>
 
-            {/* UI only - showing the route parameter */}
             <p className="mt-2 text-xs text-gray-400">
               Project ID: {projectId}
             </p>
@@ -147,7 +126,7 @@ function Tickets() {
             </div>
 
             <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-              {tickets.length} Tickets
+              {ticketData.length} Tickets
             </span>
           </div>
 
@@ -171,69 +150,81 @@ function Tickets() {
               </thead>
 
               <tbody className="divide-y divide-gray-200">
-                {tickets.map((ticket) => (
-                  <tr key={ticket.id} className="transition hover:bg-gray-50">
-                    {/* Reference */}
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="font-medium text-gray-900">
-                        {ticket.reference_no}
-                      </span>
-                    </td>
-
-                    {/* Contact Person */}
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="font-medium text-gray-800">
-                        {ticket.contact_person}
-                      </span>
-                    </td>
-
-                    {/* Email */}
-                    <td className="whitespace-nowrap px-6 py-4">
-                      {ticket.contact_email}
-                    </td>
-
-                    {/* Description */}
-                    <td className="max-w-sm px-6 py-4">
-                      <p className="truncate">{ticket.description}</p>
-                    </td>
-
-                    {/* Status */}
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${getStatusStyle(
-                          ticket.status,
-                        )}`}
-                      >
-                        {ticket.status}
-                      </span>
-                    </td>
-
-                    {/* Action */}
-                    <td className="whitespace-nowrap px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          type="button"
-                          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
-                        >
-                          View
-                        </button>
-
-                        <button
-                          type="button"
-                          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
-                        >
-                          Edit
-                        </button>
-                      </div>
+                {ticketData.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-6 py-10 text-center text-sm text-gray-500"
+                    >
+                      No tickets found for this project.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  ticketData.map((ticket) => (
+                    <tr key={ticket.id} className="transition hover:bg-gray-50">
+                      {/* Reference */}
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <span className="font-medium text-gray-900">
+                          {ticket.reference_no}
+                        </span>
+                      </td>
+
+                      {/* Contact Person */}
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <span className="font-medium text-gray-800">
+                          {ticket.contact_person}
+                        </span>
+                      </td>
+
+                      {/* Email */}
+                      <td className="whitespace-nowrap px-6 py-4">
+                        {ticket.contact_email}
+                      </td>
+
+                      {/* Description */}
+                      <td className="max-w-sm px-6 py-4">
+                        <p className="truncate">{ticket.description}</p>
+                      </td>
+
+                      {/* Status */}
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${getStatusStyle(
+                            ticket.status,
+                          )}`}
+                        >
+                          {getStatusLabel(ticket.status)}
+                        </span>
+                      </td>
+
+                      {/* Action */}
+                      <td className="whitespace-nowrap px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
+                          >
+                            View
+                          </button>
+
+                          <button
+                            type="button"
+                            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
+      {/* Add Ticket Modal */}
       <Modal
         isOpen={isAddTicketModalOpen}
         onClose={() => setIsAddTicketModalOpen(false)}

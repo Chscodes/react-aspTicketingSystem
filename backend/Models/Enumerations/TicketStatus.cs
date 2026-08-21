@@ -7,5 +7,6 @@ public enum TicketStatus
     OnReview = 1,
     SupportWillContactYou = 2,
     InProgress = 3,
-    Closed = 4
+    Closed = 4,
+    Cancelled = 5
 }

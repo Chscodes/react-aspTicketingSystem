@@ -82,4 +82,25 @@ public class TicketService
             throw;
         }
     }
+
+
+    public async Task<List<TicketResponse>> GetTicketsData(Guid projectId)
+    {
+        var tickets = await _context.Tickets
+            .Where(t => t.project_id == projectId && !t.isDeleted)
+            .Select(t => new TicketResponse
+            {
+                id = t.id,
+                project_id = t.project_id,
+                reference_no = t.reference_no,
+                contact_person = t.contact_person,
+                contact_email = t.contact_email,
+                description = t.description,
+                status = t.status,
+                isDeleted = t.isDeleted
+            })
+            .ToListAsync();
+
+        return tickets;
+    }
 }

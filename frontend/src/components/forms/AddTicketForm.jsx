@@ -1,33 +1,11 @@
+import swal from "sweetalert2";
 function AddTicketForm({ onCancel, onSubmit, projectId }) {
-  const statusOptions = [
-    {
-      value: "New",
-      label: "NEW",
-    },
-    {
-      value: "OnReview",
-      label: "On Review",
-    },
-    {
-      value: "SupportWillContactYou",
-      label: "Support Will Contact You",
-    },
-    {
-      value: "InProgress",
-      label: "In-progress",
-    },
-    {
-      value: "Closed",
-      label: "Closed",
-    },
-  ];
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
 
-    const data = {
+    const payload = {
       project_id: projectId,
 
       contact_person: formData.get("contact_person"),
@@ -37,10 +15,19 @@ function AddTicketForm({ onCancel, onSubmit, projectId }) {
       description: formData.get("description"),
     };
 
-    console.log("Ticket form:", data);
-
     if (onSubmit) {
-      onSubmit(data);
+      const result = await swal.fire({
+        title: "Are you sure?",
+        text: "Do you want to create this ticket?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Yes, create it",
+        cancelButtonText: "Cancel",
+      });
+
+      if (result.isConfirmed) {
+        onSubmit(payload);
+      }
     }
   };
 
@@ -73,11 +60,12 @@ function AddTicketForm({ onCancel, onSubmit, projectId }) {
               htmlFor="contact_person"
               className="mb-2 block text-sm font-medium text-gray-700"
             >
-              Contact Person
+              Contact Person <span className="text-red-500">*</span>
             </label>
 
             <input
               id="contact_person"
+              required
               name="contact_person"
               type="text"
               placeholder="Enter contact person"
@@ -104,41 +92,19 @@ function AddTicketForm({ onCancel, onSubmit, projectId }) {
           </div>
         </div>
 
-        {/* Status */}
-        <div>
-          <label
-            htmlFor="status"
-            className="mb-2 block text-sm font-medium text-gray-700"
-          >
-            Status
-          </label>
-
-          <select
-            id="status"
-            name="status"
-            defaultValue="New"
-            className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-          >
-            {statusOptions.map((status) => (
-              <option key={status.value} value={status.value}>
-                {status.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
         {/* Description */}
         <div>
           <label
             htmlFor="description"
             className="mb-2 block text-sm font-medium text-gray-700"
           >
-            Description
+            Description <span className="text-red-500">*</span>
           </label>
 
           <textarea
             id="description"
             name="description"
+            required
             rows={5}
             placeholder="Describe the issue or request..."
             className="block w-full resize-none rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"

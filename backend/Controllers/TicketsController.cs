@@ -25,7 +25,11 @@ public class TicketsController : ControllerBase
         {
             var ticket = await _ticketService.CreateTicket(request); // tawag sa service naho sa backend
 
-            return Ok(ticket); // dito ako nahinto paano ko mabalik to sa frontend
+            return Ok(new
+            {
+                message = "Ticket created successfully",
+                data = ticket
+            });
         
         }
         catch (KeyNotFoundException ex)
@@ -42,5 +46,33 @@ public class TicketsController : ControllerBase
                 message = ex.Message
             });
         }
+    }
+    //  --------------------fetching Tickets Data
+    [HttpGet("getTicketsData/{projectId}")]
+    public async Task<ActionResult<IEnumerable<TicketResponse>>> FetchTicketData(
+        Guid projectId)
+    {
+       
+        try
+            {
+                var ticketData = await _ticketService.GetTicketsData(projectId);
+
+                return Ok(ticketData);
+            
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
     }
 }

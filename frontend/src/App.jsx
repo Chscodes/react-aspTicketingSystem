@@ -1,17 +1,22 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "sonner";
 
 import Projects from "./pages/Projects/Projects";
 import Tickets from "./pages/Tickets/Tickets";
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/projects" replace />} />
+    <>
+      <Toaster position="top-right" />
 
-      <Route path="/projects" element={<Projects />} />
+      <Routes>
+        <Route path="/" element={<Navigate to="/projects" replace />} />
 
-      <Route path="/projects/:projectId/tickets" element={<Tickets />} />
-    </Routes>
+        <Route path="/projects" element={<Projects />} />
+
+        <Route path="/projects/:projectId/tickets" element={<Tickets />} />
+      </Routes>
+    </>
   );
 }
 
