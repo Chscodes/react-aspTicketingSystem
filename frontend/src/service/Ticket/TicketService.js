@@ -15,3 +15,10 @@ export const fetchTicketsData = async (projectID) => {
   console.log(response);
   return response;
 };
+
+export const updateToCancel = async (ticket_id) => {
+  const response = await axiosClient.put(`/tickets/cancelTicket/${ticket_id}`);
+
+  console.log(response);
+  return response;
+};

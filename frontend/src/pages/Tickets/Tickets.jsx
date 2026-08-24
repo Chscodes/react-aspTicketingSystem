@@ -6,7 +6,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   createTicket,
   fetchTicketsData,
+  updateToCancel,
 } from "../../service/Ticket/TicketService";
+
+import { getProjectname } from "../../service/Project/projectService";
 
 // Components
 import Modal from "../../components/Modal";
@@ -24,11 +27,22 @@ function Tickets() {
 
   const [isAddTicketModalOpen, setIsAddTicketModalOpen] = useState(false);
   const [ticketData, setTicketData] = useState([]);
-
+  const [project_name, setProject_name] = useState([]);
+  const [openMenu, setOpenMenu] = useState(null);
+  const [menuPosition, setMenuPosition] = useState(null);
+  const resetDesigns = async () => {
+    setOpenMenu(null);
+    setMenuPosition(null);
+    setIsAddTicketModalOpen(false);
+  };
   const fetchTickets = useCallback(async () => {
     try {
       const res = await fetchTicketsData(projectId);
 
+      const res_project_name = await getProjectname(projectId);
+
+      setProject_name(res_project_name.data);
+      await resetDesigns();
       setTicketData(res.data);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to fetch tickets.");
@@ -50,7 +64,7 @@ function Tickets() {
       loading: "Creating ticket...",
 
       success: (res) => {
-        return res.data?.message || "Ticket created successfully!";
+        return res.data?.message;
       },
 
       error: (error) =>
@@ -60,14 +74,60 @@ function Tickets() {
     try {
       await promise;
 
-      // Close modal after successful creation
-      setIsAddTicketModalOpen(false);
-
       // Refresh ticket list
       await fetchTickets();
     } catch (error) {
       console.error("Failed to create ticket:", error);
     }
+  };
+
+  const handleCancelButton = async (ticket_id) => {
+    const promise = updateToCancel(ticket_id);
+
+    toast.promise(promise, {
+      loading: "Cancelling ticket...",
+
+      success: (res) => {
+        return res.data?.message;
+      },
+
+      error: (error) => error.response?.data?.message,
+    });
+
+    try {
+      await promise;
+      // Refresh ticket list
+      await fetchTickets();
+    } catch (error) {
+      console.error("Failed to create ticket:", error);
+    }
+  };
+
+  const handleMenuClick = (event, id) => {
+    if (openMenu === id) {
+      setOpenMenu(null);
+      setMenuPosition(null);
+      return;
+    }
+
+    const buttonRect = event.currentTarget.getBoundingClientRect();
+
+    const menuWidth = 160;
+    const menuHeight = 140;
+    const gap = 6;
+
+    const spaceBelow = window.innerHeight - buttonRect.bottom;
+    const spaceAbove = buttonRect.top;
+
+    const openUp = spaceBelow < menuHeight && spaceAbove > spaceBelow;
+
+    setMenuPosition({
+      top: openUp ? buttonRect.top - menuHeight - gap : buttonRect.bottom + gap,
+
+      left: buttonRect.right - menuWidth,
+    });
+
+    setOpenMenu(id);
   };
 
   return (
@@ -79,7 +139,7 @@ function Tickets() {
           onClick={() => navigate(-1)}
           className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-gray-600 transition hover:text-gray-900"
         >
-          ← Back to Projects
+          ← Back
         </button>
 
         {/* Header */}
@@ -89,7 +149,7 @@ function Tickets() {
               <h1 className="text-2xl font-bold text-gray-900">Tickets</h1>
 
               <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-                Project
+                {project_name}
               </span>
             </div>
 
@@ -199,20 +259,59 @@ function Tickets() {
 
                       {/* Action */}
                       <td className="whitespace-nowrap px-6 py-4 text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="relative flex justify-end">
                           <button
                             type="button"
-                            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
+                            onClick={(e) => handleMenuClick(e, ticket.id)}
+                            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                           >
-                            View
+                            ...
                           </button>
 
-                          <button
-                            type="button"
-                            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
-                          >
-                            Edit
-                          </button>
+                          {openMenu === ticket.id && (
+                            <div
+                              style={{
+                                top: menuPosition.top,
+                                left: menuPosition.left,
+                              }}
+                              className="fixed z-[9999] w-40 rounded-md border border-gray-200 bg-white py-1 shadow-lg"
+                            >
+                              <button
+                                type="button"
+                                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                onClick={() => {
+                                  // View action
+                                  setOpenMenu(null);
+                                }}
+                              >
+                                View
+                              </button>
+
+                              <button
+                                type="button"
+                                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                onClick={() => {
+                                  // Edit action
+                                  setOpenMenu(null);
+                                }}
+                              >
+                                Edit
+                              </button>
+
+                              {ticket.status === 0 && (
+                                <button
+                                  type="button"
+                                  className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                                  onClick={() => {
+                                    // Cancel action
+                                    handleCancelButton(ticket.id);
+                                  }}
+                                >
+                                  Cancel
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </td>
                     </tr>

@@ -34,6 +34,7 @@ builder.Services.AddSwaggerGen();
 
 // TICKETS SERVICES
 builder.Services.AddScoped<TicketService>();
+builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<TicketReferenceNumberService>();
 
 var app = builder.Build();

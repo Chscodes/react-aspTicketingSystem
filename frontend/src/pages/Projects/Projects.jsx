@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getProjects } from "../../service/projectService";
+import { getProjects } from "../../service/Project/projectService";
 import { useNavigate } from "react-router-dom";
 function Projects() {
   const navigate = useNavigate();

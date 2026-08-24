@@ -75,4 +75,36 @@ public class TicketsController : ControllerBase
                 });
             }
     }
+
+    //  -------------------- Update to Cancel the Ticket 
+
+    [HttpPut("cancelTicket/{ticket_id}")]
+    public async Task<IActionResult> CancelTicketController(Guid ticket_id)
+    {
+       
+        try
+            {
+                await _ticketService.cancelTicketService(ticket_id);
+
+                return Ok(new
+                {
+                    message = "Ticket cancelled successfully."
+                });
+            
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+    }
 }

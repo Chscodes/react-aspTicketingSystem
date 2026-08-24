@@ -2,6 +2,7 @@ using backend.Data;
 using backend.DTOs.Tickets;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using backend.Models.Enumerations;
 
 namespace backend.Services;
 
@@ -102,5 +103,28 @@ public class TicketService
             .ToListAsync();
 
         return tickets;
+    }
+
+    public async Task cancelTicketService(Guid ticket_id)
+    {
+        await using var transaction =  await _context.Database.BeginTransactionAsync();
+
+            try {
+                var ticket = await _context.Tickets.FindAsync(ticket_id);
+
+                if (ticket == null)
+                {
+                    throw new KeyNotFoundException("Ticket not found.");
+                }
+
+                ticket.status = TicketStatus.Cancelled;
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch {
+                await transaction.RollbackAsync();
+                throw;   
+            }
     }
 }
