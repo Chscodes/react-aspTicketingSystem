@@ -1,5 +1,3 @@
-using backend.Models.Enumerations;
-
 namespace backend.DTOs.Tickets;
 
 public class CreateTicketRequest
@@ -12,4 +10,5 @@ public class CreateTicketRequest
 
     public string description { get; set; } = string.Empty;
 
+    public List<IFormFile>? Attachments { get; set; }
 }

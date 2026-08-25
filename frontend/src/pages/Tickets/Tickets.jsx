@@ -64,11 +64,11 @@ function Tickets() {
       loading: "Creating ticket...",
 
       success: (res) => {
-        return res.data?.message;
+        console.log(`res.data`, res);
+        return res.message;
       },
 
-      error: (error) =>
-        error.response?.data?.message || "Failed to create ticket.",
+      error: (error) => error.response?.message || "Failed to create ticket.",
     });
 
     try {
@@ -282,20 +282,12 @@ function Tickets() {
                                 onClick={() => {
                                   // View action
                                   setOpenMenu(null);
+                                  navigate(
+                                    `../projects/${ticket.id}/view-tickets`,
+                                  );
                                 }}
                               >
                                 View
-                              </button>
-
-                              <button
-                                type="button"
-                                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                                onClick={() => {
-                                  // Edit action
-                                  setOpenMenu(null);
-                                }}
-                              >
-                                Edit
                               </button>
 
                               {ticket.status === 0 && (

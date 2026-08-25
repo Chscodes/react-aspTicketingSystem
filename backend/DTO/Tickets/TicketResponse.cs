@@ -8,6 +8,8 @@ public class TicketResponse
 
     public Guid? project_id { get; set; }
 
+    public string? project_name { get; set; }
+
     public string reference_no { get; set; } = string.Empty;
 
     public string contact_person { get; set; } = string.Empty;
@@ -19,4 +21,8 @@ public class TicketResponse
     public TicketStatus status { get; set; }
 
     public bool isDeleted { get; set; }
+
+    public DateTime createdAt { get; set; }
+
+    public DateTime updatedAt { get; set; }
 }

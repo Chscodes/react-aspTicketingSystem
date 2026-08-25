@@ -24,4 +24,7 @@ public class Ticket : BaseEntity
     // para sa relationship sa Project na malaman siya e collect or CHILD
     // Navigation Property
     public Project? Project { get; set; } = null!;
+
+     public ICollection<TicketAttachment> attachments { get; set; }
+        = new List<TicketAttachment>();
 }

@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 
 import Projects from "./pages/Projects/Projects";
 import Tickets from "./pages/Tickets/Tickets";
+import ViewTicket from "./pages/Tickets/ViewTicket";
 
 function App() {
   return (
@@ -15,6 +16,11 @@ function App() {
         <Route path="/projects" element={<Projects />} />
 
         <Route path="/projects/:projectId/tickets" element={<Tickets />} />
+
+        <Route
+          path="/projects/:ticketId/view-tickets"
+          element={<ViewTicket />}
+        />
       </Routes>
     </>
   );

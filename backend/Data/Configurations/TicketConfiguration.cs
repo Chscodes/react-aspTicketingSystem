@@ -41,5 +41,11 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
             .WithMany(p => p.Tickets)
             .HasForeignKey(t => t.project_id)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Ticket Attachment Relationship
+        builder.HasMany(x => x.attachments)
+            .WithOne(x => x.Ticket)
+            .HasForeignKey(x => x.ticket_id)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

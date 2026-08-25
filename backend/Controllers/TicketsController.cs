@@ -19,7 +19,7 @@ public class TicketsController : ControllerBase
 
     [HttpPost("addNewTicket")]
     public async Task<IActionResult> AddNewTicket( // pangalan ng controller
-        CreateTicketRequest request)
+      [FromForm] CreateTicketRequest request)
     {
         try
         {
@@ -107,4 +107,35 @@ public class TicketsController : ControllerBase
                 });
             }
     }
+
+
+      //  --------------------fetching Tickets Data BY ID
+    [HttpGet("getTicketDataById/{ticketId}")]
+    public async Task<ActionResult<IEnumerable<TicketResponse>>> FetchTicketDataById(
+        Guid ticketId)
+    {
+       
+        try
+            {
+                var ticketData = await _ticketService.GetTicketsDataById(ticketId);
+
+                return Ok(ticketData);
+            
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+    }
+
 }

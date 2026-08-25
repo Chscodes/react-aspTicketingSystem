@@ -20,7 +20,7 @@ public class TicketService
     }
 
     public async Task<TicketResponse> CreateTicket(
-        CreateTicketRequest request)
+    CreateTicketRequest request)
     {
         await using var transaction =
             await _context.Database.BeginTransactionAsync();
@@ -36,7 +36,7 @@ public class TicketService
             if (project == null)
             {
                 throw new KeyNotFoundException(
-                    "Project not found."
+                    "Project not founds."
                 );
             }
 
@@ -55,16 +55,41 @@ public class TicketService
                 description = request.description
             };
 
-            // 4. Add
+            // 4. Add Ticket
             _context.Tickets.Add(ticket);
 
-            // 5. Save
+            // 5. Save Ticket first
             await _context.SaveChangesAsync();
 
-            // 6. Commit
+            // 6. Add Attachments
+          if (request.Attachments != null &&
+                request.Attachments.Count > 0)
+            {
+                foreach (var file in request.Attachments)
+                {
+                    await using var stream = new MemoryStream();
+
+                    await file.CopyToAsync(stream);
+
+                    var attachment = new TicketAttachment
+                    {
+                        ticket_id = ticket.id,
+                        file_name = file.FileName,
+                        content_type = file.ContentType,
+                        file_size = file.Length,
+                        file_data = stream.ToArray()
+                    };
+
+                    _context.TicketAttachments.Add(attachment);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
+            // 8. Commit
             await transaction.CommitAsync();
 
-            // 7. Return DTO
+            // 9. Return DTO
             return new TicketResponse
             {
                 id = ticket.id,
@@ -88,7 +113,7 @@ public class TicketService
     public async Task<List<TicketResponse>> GetTicketsData(Guid projectId)
     {
         var tickets = await _context.Tickets
-            .Where(t => t.project_id == projectId && !t.isDeleted)
+            .Where(t => t.project_id == projectId && !t.isDeleted && t.status != TicketStatus.Cancelled)
             .Select(t => new TicketResponse
             {
                 id = t.id,
@@ -126,5 +151,32 @@ public class TicketService
                 await transaction.RollbackAsync();
                 throw;   
             }
+    }
+
+
+    public async Task<TicketResponse?> GetTicketsDataById(Guid ticketId)
+    {
+        var ticket = await (
+            from t in _context.Tickets
+            join p in _context.Projects
+                on t.project_id equals p.id
+            where t.id == ticketId
+            select new TicketResponse
+            {
+                id = t.id,
+                project_id = t.project_id,
+                project_name = p.project_name,
+                reference_no = t.reference_no,
+                contact_person = t.contact_person,
+                contact_email = t.contact_email,
+                description = t.description,
+                status = t.status,
+                isDeleted = t.isDeleted,
+                createdAt = t.createdAt,
+                updatedAt = t.updatedAt
+            }
+        ).FirstOrDefaultAsync();
+
+        return ticket;
     }
 }
