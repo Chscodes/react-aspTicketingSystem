@@ -114,6 +114,7 @@ public class TicketService
     {
         var tickets = await _context.Tickets
             .Where(t => t.project_id == projectId && !t.isDeleted && t.status != TicketStatus.Cancelled)
+            .OrderByDescending(t => t.createdAt)
             .Select(t => new TicketResponse
             {
                 id = t.id,
@@ -168,15 +169,43 @@ public class TicketService
                 project_name = p.project_name,
                 reference_no = t.reference_no,
                 contact_person = t.contact_person,
-                contact_email = t.contact_email,
+                contact_email = t.contact_email ,
                 description = t.description,
                 status = t.status,
                 isDeleted = t.isDeleted,
                 createdAt = t.createdAt,
-                updatedAt = t.updatedAt
+                updatedAt = t.updatedAt,
+                attachments = t.attachments
+                .Select(a => new TicketAttachmentResponse
+                {
+                    id = a.id,
+                    file_name = a.file_name,
+                    content_type = a.content_type,
+                    file_size = a.file_size
+                })
+                .ToList()
             }
         ).FirstOrDefaultAsync();
 
         return ticket;
+    }
+
+    public async Task<TicketAttachment?> GetAttachmentById(Guid attachmentId)
+    {
+        return await _context.TicketAttachments
+            .FirstOrDefaultAsync(a => a.id == attachmentId);
+    }
+
+    public async Task updateTicketStatus(Guid ticketId, TicketStatus status)
+    {
+        var ticket = await _context.Tickets.FindAsync(ticketId);
+
+        if (ticket == null)
+            throw new KeyNotFoundException("Ticket not found.");
+
+        ticket.status = status;
+        ticket.updatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
     }
 }

@@ -14,7 +14,7 @@ public class TicketResponse
 
     public string contact_person { get; set; } = string.Empty;
 
-    public string contact_email { get; set; } = string.Empty;
+    public string? contact_email { get; set; } = string.Empty;
 
     public string description { get; set; } = string.Empty;
 
@@ -25,4 +25,6 @@ public class TicketResponse
     public DateTime createdAt { get; set; }
 
     public DateTime updatedAt { get; set; }
+
+     public List<TicketAttachmentResponse> attachments { get; set; } = new();
 }

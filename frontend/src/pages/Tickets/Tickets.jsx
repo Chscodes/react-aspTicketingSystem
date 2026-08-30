@@ -16,10 +16,7 @@ import Modal from "../../components/Modal";
 import AddTicketForm from "../../components/forms/AddTicketForm";
 
 // utilss
-import {
-  getStatusStyle,
-  getStatusLabel,
-} from "../../utils/Tickets/ticketStatus";
+import { getStatusStyle } from "../../utils/Tickets/ticketStatus";
 
 function Tickets() {
   const navigate = useNavigate();
@@ -64,7 +61,7 @@ function Tickets() {
       loading: "Creating ticket...",
 
       success: (res) => {
-        console.log(`res.data`, res);
+        // console.log(`res.data`, res);
         return res.message;
       },
 
@@ -253,7 +250,7 @@ function Tickets() {
                             ticket.status,
                           )}`}
                         >
-                          {getStatusLabel(ticket.status)}
+                          {ticket.status}
                         </span>
                       </td>
 

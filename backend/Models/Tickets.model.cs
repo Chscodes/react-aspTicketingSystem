@@ -13,13 +13,13 @@ public class Ticket : BaseEntity
 
     public string contact_person { get; set; } = string.Empty;
     
-    public string contact_email { get; set; } = string.Empty;
+    public string? contact_email { get; set; }
 
     public string description { get; set; } = string.Empty;
 
     public TicketStatus status { get; set; } = TicketStatus.New;
 
-    public bool isDeleted { get; set; } = false;
+    
 
     // para sa relationship sa Project na malaman siya e collect or CHILD
     // Navigation Property

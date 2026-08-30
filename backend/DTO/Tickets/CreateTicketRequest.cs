@@ -6,7 +6,7 @@ public class CreateTicketRequest
 
     public string contact_person { get; set; } = string.Empty;
 
-    public string contact_email { get; set; } = string.Empty;
+    public string? contact_email { get; set; }
 
     public string description { get; set; } = string.Empty;
 

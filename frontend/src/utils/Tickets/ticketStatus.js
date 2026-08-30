@@ -25,7 +25,7 @@ export const getStatusStyle = (status) => {
 
 export const getStatusLabel = (status) => {
   switch (status) {
-    case 0:
+    case "New":
       return "New";
 
     case 1:

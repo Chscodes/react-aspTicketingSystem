@@ -11,6 +11,6 @@ export const getProjectname = async (projectID) => {
     `/projects/getProjectName/${projectID}`,
   );
 
-  console.log(response);
+  // console.log(response);
   return response;
 };

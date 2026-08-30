@@ -1,18 +1,24 @@
-import { useState, useCallback, useEffect } from "react";
-import swal from "sweetalert2";
+import { useState, useCallback, useEffect, useRef } from "react";
+// import swal from "sweetalert2";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { fetchTicketDataById } from "../../service/Ticket/TicketService";
 import {
-  getStatusStyle,
-  getStatusLabel,
-} from "../../utils/Tickets/ticketStatus";
+  fetchTicketDataById,
+  getAttachmentById,
+  fetchTicketStatuses,
+  updateTicketStatus,
+  updateToCancel,
+} from "../../service/Ticket/TicketService";
+import { getStatusStyle } from "../../utils/Tickets/ticketStatus";
 function ViewTicket() {
   const navigate = useNavigate();
+  const debounceTimer = useRef(null);
+
   const { ticketId } = useParams();
 
   const [showAttachment, setShowAttachment] = useState(null);
   const [ticket, setTicket] = useState({});
+  const [statuses, setStatuses] = useState([]);
 
   //   const getStatusStyle = (status) => {
   //     switch (status?.toLowerCase()) {
@@ -62,32 +68,43 @@ function ViewTicket() {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
-  const handleDeleteAttachment = async (attachment) => {
-    const result = await swal.fire({
-      title: "Remove attachment?",
-      text: `Do you want to remove ${attachment.file_name}?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, remove it",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#dc2626",
-    });
+  // const handleDeleteAttachment = async (attachment) => {
+  //   const result = await swal.fire({
+  //     title: "Remove attachment?",
+  //     text: `Do you want to remove ${attachment.file_name}?`,
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //     confirmButtonText: "Yes, remove it",
+  //     cancelButtonText: "Cancel",
+  //     confirmButtonColor: "#dc2626",
+  //   });
 
-    if (!result.isConfirmed) {
-      return;
-    }
+  //   if (!result.isConfirmed) {
+  //     return;
+  //   }
 
-    // TODO:
-    // Call your API here to delete the attachment
-    console.log("Delete attachment:", attachment);
-  };
+  //   // TODO:
+  //   // Call your API here to delete the attachment
+  //   console.log("Delete attachment:", attachment);
+  // };
 
   const fetchTicketData = useCallback(async () => {
     try {
       const res = await fetchTicketDataById(ticketId);
 
       const data = res.data;
-      console.log(data);
+      const attachmentsWithUrls = await Promise.all(
+        (data.attachments || []).map(async (a) => {
+          const fileRes = await getAttachmentById(a.id); // now returns a blob
+          return {
+            id: a.id,
+            file_name: a.file_name,
+            content_type: a.content_type,
+            file_size: a.file_size,
+            file_url: URL.createObjectURL(fileRes.data),
+          };
+        }),
+      );
       setTicket({
         contact_email: data.contact_email,
         contact_person: data.contact_person,
@@ -97,6 +114,7 @@ function ViewTicket() {
         project_name: data.project_name,
         reference_no: data.reference_no,
         status: data.status,
+        attachments: attachmentsWithUrls,
       });
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to fetch ticket.");
@@ -110,27 +128,67 @@ function ViewTicket() {
     }
   }, [ticketId, fetchTicketData]);
 
-  // const handleCancelButton = async (ticket_id) => {
-  //   const promise = updateToCancel(ticket_id);
+  useEffect(() => {
+    fetchTicketStatuses()
+      .then(setStatuses)
+      .catch(() => toast.error("Failed to load ticket statuses."));
+  }, []); // empty array = run once, on mount only
 
-  //   toast.promise(promise, {
-  //     loading: "Cancelling ticket...",
+  const handleStatusChange = async (status) => {
+    const promise = updateTicketStatus(status, ticketId);
+    // Clear previous debounce timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
 
-  //     success: (res) => {
-  //       return res.data?.message;
-  //     },
+    debounceTimer.current = setTimeout(async () => {
+      toast.promise(promise, {
+        loading: "Updating ticket...",
 
-  //     error: (error) => error.response?.data?.message,
-  //   });
+        success: (res) => {
+          return res.data?.message;
+        },
 
-  //   try {
-  //     await promise;
-  //     // Refresh ticket list
-  //     await fetchTickets();
-  //   } catch (error) {
-  //     console.error("Failed to create ticket:", error);
-  //   }
-  // };
+        error: (error) => error.response?.data?.message,
+      });
+    }, 500);
+
+    try {
+      await promise;
+      // Refresh ticket list
+      await fetchTicketData();
+    } catch (error) {
+      console.error("Failed to create ticket:", error);
+    }
+  };
+
+  const handleCancelTicket = async () => {
+    const promise = updateToCancel(ticketId);
+    // Clear previous debounce timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    debounceTimer.current = setTimeout(async () => {
+      toast.promise(promise, {
+        loading: "Cancelling ticket...",
+
+        success: (res) => {
+          return res.data?.message;
+        },
+
+        error: (error) => error.response?.data?.message,
+      });
+    }, 500);
+
+    try {
+      await promise;
+      // Refresh ticket list
+      await fetchTicketData();
+    } catch (error) {
+      console.error("Failed to create ticket:", error);
+    }
+  };
 
   if (!ticket) {
     return (
@@ -177,7 +235,7 @@ function ViewTicket() {
                       ticket.status,
                     )}`}
                   >
-                    {getStatusLabel(ticket.status)}
+                    {ticket.status}
                   </span>
                 </div>
 
@@ -188,16 +246,18 @@ function ViewTicket() {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2">
-              {/* Cancel Ticket */}
-              <button
-                type="button"
-                // onClick={handleCancelTicket}
-                className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
-              >
-                Cancel Ticket
-              </button>
-            </div>
+            {ticket.status === "New" && (
+              <div className="flex items-center gap-2">
+                {/* Cancel Ticket */}
+                <button
+                  type="button"
+                  onClick={handleCancelTicket}
+                  className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                >
+                  Cancel Ticket
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Main Layout */}
@@ -306,7 +366,7 @@ function ViewTicket() {
                                 </p>
                               </div>
 
-                              <button
+                              {/* <button
                                 type="button"
                                 onClick={() =>
                                   handleDeleteAttachment(attachment)
@@ -314,7 +374,7 @@ function ViewTicket() {
                                 className="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
                               >
                                 Remove
-                              </button>
+                              </button> */}
                             </div>
                           </div>
                         );
@@ -422,17 +482,17 @@ function ViewTicket() {
                     <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
                       Status
                     </p>
-
                     <div className="relative mt-2">
                       <select
                         value={ticket?.status || ""}
-                        //   onChange={(e) => handleStatusChange(e.target.value)}
+                        onChange={(e) => handleStatusChange(e.target.value)}
                         className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-10 text-sm font-medium text-gray-700 shadow-sm outline-none transition hover:border-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                       >
-                        <option value="Pending">Pending</option>
-                        <option value="InProgress">In Progress</option>
-                        <option value="Resolved">Resolved</option>
-                        <option value="Closed">Closed</option>
+                        {statuses.map((s) => (
+                          <option key={s.value} value={s.value}>
+                            {s.label}
+                          </option>
+                        ))}
                       </select>
 
                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">

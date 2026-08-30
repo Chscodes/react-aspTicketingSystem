@@ -11,7 +11,7 @@ export const fetchTicketsData = async (projectID) => {
     `/tickets/getTicketsData/${projectID}`,
   );
 
-  console.log(response);
+  // console.log(response);
   return response;
 };
 
@@ -28,4 +28,25 @@ export const fetchTicketDataById = async (ticketId) => {
   );
 
   return response;
+};
+
+export const getAttachmentById = async (attachment_id) => {
+  const response = await axiosClient.get(
+    `/tickets/attachments/${attachment_id}`,
+    { responseType: "blob" },
+  );
+  return response;
+};
+
+export const fetchTicketStatuses = async () => {
+  const res = await axiosClient.get("/tickets/ticket_statuses");
+  return res.data; // [{ value: "New", label: "New" }, { value: "OnReview", label: "On Review" }, ...]
+};
+
+export const updateTicketStatus = async (status, ticketId) => {
+  console.log(ticketId, status);
+  const res = await axiosClient.put(`/tickets/updateTicketStatus/${ticketId}`, {
+    status,
+  });
+  return res;
 };

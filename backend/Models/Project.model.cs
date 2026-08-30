@@ -10,8 +10,6 @@ public class Project : BaseEntity
 
     public string remarks { get; set; } = string.Empty;
 
-    public bool isDeleted { get; set; } = false;
-
     // para sa relationship sa Ticket na malaman siya ang mag collect or MOTHER
     // Navigation Property
     public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
