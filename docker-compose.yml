@@ -1,0 +1,64 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: ticketing-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-aspnet_react_mvc}
+      MYSQL_USER: ${MYSQL_USER:-ticketing}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ticketingpass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - ticketing-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ticketing-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "server=mysql;port=3306;database=${MYSQL_DATABASE:-aspnet_react_mvc};user=${MYSQL_USER:-ticketing};password=${MYSQL_PASSWORD:-ticketingpass}"
+      Cors__AllowedOrigins: "http://localhost,http://localhost:80,http://localhost:5173"
+    ports:
+      - "5153:8080"
+    networks:
+      - ticketing-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Same-origin via nginx proxy – leave empty
+        VITE_API_URL: ""
+    container_name: ticketing-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - ticketing-network
+
+volumes:
+  mysql_data:
+
+networks:
+  ticketing-network:
+    driver: bridge
