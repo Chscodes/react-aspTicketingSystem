@@ -1,7 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Data.Seeds;
-using backend.Services;
+using backend.Extensions;
+using backend.Middleware;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,18 +13,9 @@ builder.Services.AddControllers()
             new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
-// Database
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(
-            builder.Configuration.GetConnectionString("DefaultConnection")
-        )
-    );
-});
+builder.Services.AddApplicationDbContext(builder.Configuration);
+builder.Services.AddApplicationServices();
 
-// CORS – supports Docker + local dev
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
     .Get<string[]>()
@@ -45,19 +37,13 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Services
-builder.Services.AddScoped<TicketService>();
-builder.Services.AddScoped<ProjectService>();
-builder.Services.AddScoped<TicketReferenceNumberService>();
-
 var app = builder.Build();
 
-// Apply migrations + seed on startup (important for Docker)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<AppDbContext>();
-
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await context.Database.MigrateAsync();
     await DatabaseSeeder.SeedAsync(context);
 }
@@ -69,9 +55,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("ReactClient");
-
-// app.UseHttpsRedirection();
-
 app.MapControllers();
-
 app.Run();
