@@ -1,51 +1,37 @@
 using backend.Data;
 using backend.DTOs.Tickets;
 using backend.Models;
-using Microsoft.EntityFrameworkCore;
 using backend.Models.Enumerations;
+using backend.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
 
-public class TicketService
+public class TicketService : ITicketService
 {
     private readonly AppDbContext _context;
-    private readonly TicketReferenceNumberService _referenceNumberService;
+    private readonly ITicketReferenceNumberService _referenceNumberService;
 
     public TicketService(
         AppDbContext context,
-        TicketReferenceNumberService referenceNumberService)
+        ITicketReferenceNumberService referenceNumberService)
     {
         _context = context;
         _referenceNumberService = referenceNumberService;
     }
 
-    public async Task<TicketResponse> CreateTicket(
-    CreateTicketRequest request)
+    public async Task<TicketResponse> CreateAsync(CreateTicketRequest request)
     {
-        await using var transaction =
-            await _context.Database.BeginTransactionAsync();
+        await using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
-            // 1. Find Project
             var project = await _context.Projects
-                .FirstOrDefaultAsync(
-                    p => p.id == request.project_id
-                );
+                .FirstOrDefaultAsync(p => p.id == request.project_id && !p.isDeleted)
+                ?? throw new KeyNotFoundException("Project not found.");
 
-            if (project == null)
-            {
-                throw new KeyNotFoundException(
-                    "Project not founds."
-                );
-            }
+            var referenceNo = await _referenceNumberService.GenerateAsync(project);
 
-            // 2. Generate reference number
-            var referenceNo =
-                await _referenceNumberService
-                    .GenerateTicketReferenceNumber(project);
-
-            // 3. Create Ticket
             var ticket = new Ticket
             {
                 project_id = project.id,
@@ -55,52 +41,32 @@ public class TicketService
                 description = request.description
             };
 
-            // 4. Add Ticket
             _context.Tickets.Add(ticket);
-
-            // 5. Save Ticket first
             await _context.SaveChangesAsync();
 
-            // 6. Add Attachments
-          if (request.Attachments != null &&
-                request.Attachments.Count > 0)
+            if (request.Attachments is { Count: > 0 })
             {
                 foreach (var file in request.Attachments)
                 {
                     await using var stream = new MemoryStream();
-
                     await file.CopyToAsync(stream);
 
-                    var attachment = new TicketAttachment
+                    _context.TicketAttachments.Add(new TicketAttachment
                     {
                         ticket_id = ticket.id,
                         file_name = file.FileName,
                         content_type = file.ContentType,
                         file_size = file.Length,
                         file_data = stream.ToArray()
-                    };
-
-                    _context.TicketAttachments.Add(attachment);
+                    });
                 }
 
                 await _context.SaveChangesAsync();
             }
 
-            // 8. Commit
             await transaction.CommitAsync();
 
-            // 9. Return DTO
-            return new TicketResponse
-            {
-                id = ticket.id,
-                project_id = ticket.project_id,
-                reference_no = ticket.reference_no,
-                contact_person = ticket.contact_person,
-                contact_email = ticket.contact_email,
-                description = ticket.description,
-                status = ticket.status,
-                isDeleted = ticket.isDeleted
-            };
+            return MapToResponse(ticket);
         }
         catch
         {
@@ -109,58 +75,24 @@ public class TicketService
         }
     }
 
-
-    public async Task<List<TicketResponse>> GetTicketsData(Guid projectId)
+    public async Task<IReadOnlyList<TicketResponse>> GetByProjectAsync(Guid projectId)
     {
-        var tickets = await _context.Tickets
-            .Where(t => t.project_id == projectId && !t.isDeleted && t.status != TicketStatus.Cancelled)
+        return await _context.Tickets
+            .AsNoTracking()
+            .Where(t =>
+                t.project_id == projectId &&
+                !t.isDeleted &&
+                t.status != TicketStatus.Cancelled)
             .OrderByDescending(t => t.createdAt)
-            .Select(t => new TicketResponse
-            {
-                id = t.id,
-                project_id = t.project_id,
-                reference_no = t.reference_no,
-                contact_person = t.contact_person,
-                contact_email = t.contact_email,
-                description = t.description,
-                status = t.status,
-                isDeleted = t.isDeleted
-            })
+            .Select(t => MapToResponse(t))
             .ToListAsync();
-
-        return tickets;
     }
 
-    public async Task cancelTicketService(Guid ticket_id)
+    public async Task<TicketResponse?> GetByIdAsync(Guid ticketId)
     {
-        await using var transaction =  await _context.Database.BeginTransactionAsync();
-
-            try {
-                var ticket = await _context.Tickets.FindAsync(ticket_id);
-
-                if (ticket == null)
-                {
-                    throw new KeyNotFoundException("Ticket not found.");
-                }
-
-                ticket.status = TicketStatus.Cancelled;
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-            }
-            catch {
-                await transaction.RollbackAsync();
-                throw;   
-            }
-    }
-
-
-    public async Task<TicketResponse?> GetTicketsDataById(Guid ticketId)
-    {
-        var ticket = await (
-            from t in _context.Tickets
-            join p in _context.Projects
-                on t.project_id equals p.id
+        return await (
+            from t in _context.Tickets.AsNoTracking()
+            join p in _context.Projects.AsNoTracking() on t.project_id equals p.id
             where t.id == ticketId
             select new TicketResponse
             {
@@ -169,43 +101,61 @@ public class TicketService
                 project_name = p.project_name,
                 reference_no = t.reference_no,
                 contact_person = t.contact_person,
-                contact_email = t.contact_email ,
+                contact_email = t.contact_email,
                 description = t.description,
                 status = t.status,
                 isDeleted = t.isDeleted,
                 createdAt = t.createdAt,
                 updatedAt = t.updatedAt,
                 attachments = t.attachments
-                .Select(a => new TicketAttachmentResponse
-                {
-                    id = a.id,
-                    file_name = a.file_name,
-                    content_type = a.content_type,
-                    file_size = a.file_size
-                })
-                .ToList()
+                    .Select(a => new TicketAttachmentResponse
+                    {
+                        id = a.id,
+                        file_name = a.file_name,
+                        content_type = a.content_type,
+                        file_size = a.file_size
+                    })
+                    .ToList()
             }
         ).FirstOrDefaultAsync();
-
-        return ticket;
     }
 
-    public async Task<TicketAttachment?> GetAttachmentById(Guid attachmentId)
+    public async Task CancelAsync(Guid ticketId)
+    {
+        var ticket = await _context.Tickets.FindAsync(ticketId)
+            ?? throw new KeyNotFoundException("Ticket not found.");
+
+        ticket.status = TicketStatus.Cancelled;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateStatusAsync(Guid ticketId, TicketStatus status)
+    {
+        var ticket = await _context.Tickets.FindAsync(ticketId)
+            ?? throw new KeyNotFoundException("Ticket not found.");
+
+        ticket.status = status;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<TicketAttachment?> GetAttachmentAsync(Guid attachmentId)
     {
         return await _context.TicketAttachments
+            .AsNoTracking()
             .FirstOrDefaultAsync(a => a.id == attachmentId);
     }
 
-    public async Task updateTicketStatus(Guid ticketId, TicketStatus status)
+    private static TicketResponse MapToResponse(Ticket t) => new()
     {
-        var ticket = await _context.Tickets.FindAsync(ticketId);
-
-        if (ticket == null)
-            throw new KeyNotFoundException("Ticket not found.");
-
-        ticket.status = status;
-        ticket.updatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-    }
+        id = t.id,
+        project_id = t.project_id,
+        reference_no = t.reference_no,
+        contact_person = t.contact_person,
+        contact_email = t.contact_email,
+        description = t.description,
+        status = t.status,
+        isDeleted = t.isDeleted,
+        createdAt = t.createdAt,
+        updatedAt = t.updatedAt
+    };
 }
