@@ -2,9 +2,15 @@ using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Data.Seeds;
 using backend.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -17,13 +23,20 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     );
 });
 
-// CORS
+// CORS – supports Docker + local dev
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>()
+    ?? builder.Configuration["Cors__AllowedOrigins"]?
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? new[] { "http://localhost:5173", "http://localhost", "http://localhost:80" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactClient", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5173")
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -32,30 +45,27 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// TICKETS SERVICES
+// Services
 builder.Services.AddScoped<TicketService>();
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<TicketReferenceNumberService>();
 
-
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(
-            new System.Text.Json.Serialization.JsonStringEnumConverter());
-    });
-
 var app = builder.Build();
 
-
-//for seeds 
+// Apply migrations + seed on startup (important for Docker)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-
     var context = services.GetRequiredService<AppDbContext>();
 
+    await context.Database.MigrateAsync();
     await DatabaseSeeder.SeedAsync(context);
+}
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseCors("ReactClient");
