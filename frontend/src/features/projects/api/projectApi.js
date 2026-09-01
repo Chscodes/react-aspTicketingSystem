@@ -9,3 +9,8 @@ export async function fetchProjectName(projectId) {
   const { data } = await api.get(`/api/projects/${projectId}/name`);
   return data;
 }
+
+export async function createProject(payload) {
+  const { data } = await api.post("/api/projects", payload);
+  return data;
+}
