@@ -1,29 +1,32 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 
-import Projects from "./pages/Projects/Projects";
-import Tickets from "./pages/Tickets/Tickets";
-import ViewTicket from "./pages/Tickets/ViewTicket";
+import ProjectsPage from "./features/projects/pages/ProjectsPage";
+import TicketDetailPage from "./features/tickets/pages/TicketDetailPage";
+import TicketsPage from "./features/tickets/pages/TicketsPage";
 
-function App() {
+export default function App() {
   return (
     <>
-      <Toaster position="top-right" />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          className: "text-sm",
+        }}
+      />
 
       <Routes>
         <Route path="/" element={<Navigate to="/projects" replace />} />
+        <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/projects/:projectId/tickets" element={<TicketsPage />} />
+        <Route path="/tickets/:ticketId" element={<TicketDetailPage />} />
 
-        <Route path="/projects" element={<Projects />} />
-
-        <Route path="/projects/:projectId/tickets" element={<Tickets />} />
-
+        {/* Legacy path kept temporarily so old links still work */}
         <Route
           path="/projects/:ticketId/view-tickets"
-          element={<ViewTicket />}
+          element={<TicketDetailPage />}
         />
       </Routes>
     </>
   );
 }
-
-export default App;
