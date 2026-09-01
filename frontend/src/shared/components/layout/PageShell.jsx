@@ -1,15 +1,20 @@
 import { motion } from "framer-motion";
 import { cn } from "../../lib/cn";
+import { ThemeToggle } from "../ui/ThemeToggle";
 
 export function PageShell({ children, className }) {
   return (
-    <div className="min-h-screen bg-zinc-50/80">
+    <div className="min-h-screen bg-zinc-50/80 transition-colors dark:bg-zinc-950">
       <div
         className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
         aria-hidden
       >
-        <div className="absolute -left-32 top-0 h-72 w-72 rounded-full bg-zinc-200/40 blur-3xl" />
-        <div className="absolute -right-24 top-40 h-80 w-80 rounded-full bg-sky-100/50 blur-3xl" />
+        <div className="absolute -left-32 top-0 h-72 w-72 rounded-full bg-zinc-200/40 blur-3xl dark:bg-zinc-800/40" />
+        <div className="absolute -right-24 top-40 h-80 w-80 rounded-full bg-sky-100/50 blur-3xl dark:bg-sky-900/20" />
+      </div>
+
+      <div className="fixed right-4 top-4 z-40 sm:right-6 sm:top-6">
+        <ThemeToggle />
       </div>
 
       <motion.main
@@ -31,17 +36,21 @@ export function PageHeader({ title, description, badge, actions, back }) {
         {back}
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
               {title}
             </h1>
             {badge}
           </div>
           {description && (
-            <p className="mt-1 text-sm text-zinc-500">{description}</p>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              {description}
+            </p>
           )}
         </div>
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      {actions && (
+        <div className="flex shrink-0 items-center gap-2">{actions}</div>
+      )}
     </div>
   );
 }
