@@ -1,61 +1,31 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using backend.Data;
 using backend.Models;
-using backend.Services;
+using backend.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/projects")]
 public class ProjectsController : ControllerBase
 {
-    private readonly AppDbContext _context;
-    private readonly ProjectService _projectService;
+    private readonly IProjectService _projectService;
 
-    public ProjectsController(
-        AppDbContext context,
-        ProjectService projectService)
+    public ProjectsController(IProjectService projectService)
     {
-        _context = context;
         _projectService = projectService;
     }
 
-    // --------------- gang dito ang default para ma connect sa service ang controller
-
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Project>>> GetProjects()
+    public async Task<ActionResult<IEnumerable<Project>>> GetAll()
     {
-        var projects = await _context.Projects
-            .Where(p => !p.isDeleted)
-            .ToListAsync();
-
+        var projects = await _projectService.GetAllAsync();
         return Ok(projects);
     }
 
-    [HttpGet("getProjectName/{projectID}")]
-    public async Task<ActionResult> GetProjectName(Guid projectID)
+    [HttpGet("{id:guid}/name")]
+    public async Task<ActionResult<string>> GetName(Guid id)
     {
-        try
-        {
-            var projectName = await _projectService.getProjectNameAsync(projectID);
-
-            return Ok(projectName);
-        
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new
-            {
-                message = ex.Message
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new
-            {
-                message = ex.Message
-            });
-        }
+        var name = await _projectService.GetNameAsync(id);
+        return Ok(name);
     }
 }
