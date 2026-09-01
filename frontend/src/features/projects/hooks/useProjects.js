@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { fetchProjects } from "../api/projectApi";
+import { toast } from "sonner";
+import { createProject, fetchProjects } from "../api/projectApi";
 
 export function useProjects() {
   const [projects, setProjects] = useState([]);
@@ -23,5 +24,18 @@ export function useProjects() {
     load();
   }, [load]);
 
-  return { projects, loading, error, reload: load };
+  const addProject = async (payload) => {
+    const promise = createProject(payload);
+
+    toast.promise(promise, {
+      loading: "Creating project…",
+      success: (res) => res?.message || "Project created",
+      error: (err) => err.message || "Failed to create project",
+    });
+
+    await promise;
+    await load();
+  };
+
+  return { projects, loading, error, reload: load, addProject };
 }
