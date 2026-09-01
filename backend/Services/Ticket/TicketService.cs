@@ -84,7 +84,19 @@ public class TicketService : ITicketService
                 !t.isDeleted &&
                 t.status != TicketStatus.Cancelled)
             .OrderByDescending(t => t.createdAt)
-            .Select(t => MapToResponse(t))
+            .Select(t => new TicketResponse
+            {
+                id = t.id,
+                project_id = t.project_id,
+                reference_no = t.reference_no,
+                contact_person = t.contact_person,
+                contact_email = t.contact_email,
+                description = t.description,
+                status = t.status,
+                isDeleted = t.isDeleted,
+                createdAt = t.createdAt,
+                updatedAt = t.updatedAt
+            })
             .ToListAsync();
     }
 
