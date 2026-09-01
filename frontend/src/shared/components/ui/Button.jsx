@@ -4,12 +4,13 @@ import { cn } from "../../lib/cn";
 
 const variants = {
   primary:
-    "bg-zinc-900 text-white hover:bg-zinc-800 focus-visible:ring-zinc-400",
+    "bg-zinc-900 text-white hover:bg-zinc-800 focus-visible:ring-zinc-400 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white",
   secondary:
-    "bg-white text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50 focus-visible:ring-zinc-300",
+    "bg-white text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50 focus-visible:ring-zinc-300 dark:bg-zinc-900 dark:text-zinc-200 dark:ring-zinc-700 dark:hover:bg-zinc-800",
   danger:
-    "bg-white text-rose-600 ring-1 ring-rose-200 hover:bg-rose-50 focus-visible:ring-rose-300",
-  ghost: "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900",
+    "bg-white text-rose-600 ring-1 ring-rose-200 hover:bg-rose-50 focus-visible:ring-rose-300 dark:bg-zinc-900 dark:text-rose-400 dark:ring-rose-900/50 dark:hover:bg-rose-950/40",
+  ghost:
+    "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100",
 };
 
 const sizes = {
@@ -40,7 +41,7 @@ export const Button = forwardRef(function Button(
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
       className={cn(
         "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950",
         "disabled:pointer-events-none disabled:opacity-50",
         variants[variant],
         sizes[size],
