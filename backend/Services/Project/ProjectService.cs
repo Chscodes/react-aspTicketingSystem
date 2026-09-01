@@ -1,4 +1,5 @@
 using backend.Data;
+using backend.DTOs.Projects;
 using backend.Models;
 using backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -33,5 +34,31 @@ public class ProjectService : IProjectService
 
         return projectName
             ?? throw new KeyNotFoundException("Project not found.");
+    }
+
+    public async Task<Project> CreateAsync(CreateProjectRequest request)
+    {
+        var name = request.project_name?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Project name is required.");
+
+        var exists = await _context.Projects.AnyAsync(p =>
+            !p.isDeleted &&
+            p.project_name.ToLower() == name.ToLower());
+
+        if (exists)
+            throw new InvalidOperationException("A project with this name already exists.");
+
+        var project = new Project
+        {
+            project_name = name,
+            remarks = request.remarks?.Trim() ?? string.Empty
+        };
+
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync();
+
+        return project;
     }
 }
