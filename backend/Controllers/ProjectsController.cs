@@ -1,3 +1,4 @@
+using backend.DTOs.Projects;
 using backend.Models;
 using backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -27,5 +28,20 @@ public class ProjectsController : ControllerBase
     {
         var name = await _projectService.GetNameAsync(id);
         return Ok(name);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateProjectRequest request)
+    {
+        var project = await _projectService.CreateAsync(request);
+
+        return CreatedAtAction(
+            nameof(GetName),
+            new { id = project.id },
+            new
+            {
+                message = "Project created successfully",
+                data = project
+            });
     }
 }
