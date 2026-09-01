@@ -23,7 +23,7 @@ export async function cancelTicket(ticketId) {
 }
 
 export async function updateTicketStatus(ticketId, status) {
-  const { data } = await api.patch(`/api/tickets/${ticketId}/status", {
+  const { data } = await api.patch(`/api/tickets/${ticketId}/status`, {
     status,
   });
   return data;
