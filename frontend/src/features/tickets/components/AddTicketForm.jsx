@@ -41,6 +41,9 @@ export function AddTicketForm({ projectId, onCancel, onSubmit }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    // Capture the form before any await — React nulls event.currentTarget after yield
+    const form = event.currentTarget;
+
     const confirmed = await Swal.fire({
       title: "Create ticket?",
       text: "This will submit a new support ticket.",
@@ -53,10 +56,11 @@ export function AddTicketForm({ projectId, onCancel, onSubmit }) {
 
     if (!confirmed.isConfirmed) return;
 
-    const formData = new FormData(event.currentTarget);
-    formData.append("project_id", projectId);
+    const formData = new FormData(form);
+    formData.set("project_id", projectId);
 
-    // Ensure files are attached under the expected key
+    // File input has no name attribute; append from state
+    formData.delete("Attachments");
     attachments.forEach((file) => {
       formData.append("Attachments", file);
     });
@@ -107,13 +111,13 @@ export function AddTicketForm({ projectId, onCancel, onSubmit }) {
           multiple
           accept="image/*,video/*"
           onChange={handleAttachmentsChange}
-          className="block w-full text-sm text-zinc-600 file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200"
+          className="block w-full text-sm text-zinc-600 file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-300 dark:file:bg-zinc-800 dark:file:text-zinc-200"
         />
-        <p className="mt-1.5 text-xs text-zinc-500">
+        <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
           Images or one video · max 30 MB total
         </p>
         {attachments.length > 0 && (
-          <p className="mt-1 text-xs font-medium text-zinc-600">
+          <p className="mt-1 text-xs font-medium text-zinc-600 dark:text-zinc-300">
             {attachments.length} selected ·{" "}
             {formatFileSize(
               attachments.reduce((sum, file) => sum + file.size, 0),
@@ -122,7 +126,7 @@ export function AddTicketForm({ projectId, onCancel, onSubmit }) {
         )}
       </Field>
 
-      <div className="flex justify-end gap-2 border-t border-zinc-100 pt-4">
+      <div className="flex justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
@@ -137,7 +141,7 @@ function Field({ label, htmlFor, required, children }) {
     <div>
       <label
         htmlFor={htmlFor}
-        className="mb-1.5 block text-sm font-medium text-zinc-700"
+        className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
       >
         {label}
         {required && <span className="ml-0.5 text-rose-500">*</span>}
@@ -148,4 +152,4 @@ function Field({ label, htmlFor, required, children }) {
 }
 
 const inputClass =
-  "block w-full rounded-xl border-0 bg-zinc-50 px-3.5 py-2.5 text-sm text-zinc-900 ring-1 ring-zinc-200 outline-none transition placeholder:text-zinc-400 focus:bg-white focus:ring-2 focus:ring-zinc-900/10";
+  "block w-full rounded-xl border-0 bg-zinc-50 px-3.5 py-2.5 text-sm text-zinc-900 ring-1 ring-zinc-200 outline-none transition placeholder:text-zinc-400 focus:bg-white focus:ring-2 focus:ring-zinc-900/10 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700 dark:placeholder:text-zinc-500 dark:focus:bg-zinc-900 dark:focus:ring-zinc-500/30";
