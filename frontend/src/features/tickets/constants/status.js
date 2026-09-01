@@ -8,7 +8,6 @@ export const TICKET_STATUS = {
   Cancelled: "Cancelled",
 };
 
-/** Numeric fallback for older API responses. */
 const NUMERIC_STATUS = {
   0: TICKET_STATUS.New,
   1: TICKET_STATUS.OnReview,
@@ -28,13 +27,18 @@ const LABELS = {
 };
 
 const STYLES = {
-  [TICKET_STATUS.New]: "bg-sky-50 text-sky-700 ring-sky-200",
-  [TICKET_STATUS.OnReview]: "bg-amber-50 text-amber-700 ring-amber-200",
+  [TICKET_STATUS.New]:
+    "bg-sky-50 text-sky-700 ring-sky-200 dark:bg-sky-950/50 dark:text-sky-300 dark:ring-sky-900",
+  [TICKET_STATUS.OnReview]:
+    "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-900",
   [TICKET_STATUS.SupportWillContactYou]:
-    "bg-violet-50 text-violet-700 ring-violet-200",
-  [TICKET_STATUS.InProgress]: "bg-orange-50 text-orange-700 ring-orange-200",
-  [TICKET_STATUS.Closed]: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  [TICKET_STATUS.Cancelled]: "bg-rose-50 text-rose-700 ring-rose-200",
+    "bg-violet-50 text-violet-700 ring-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-900",
+  [TICKET_STATUS.InProgress]:
+    "bg-orange-50 text-orange-700 ring-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:ring-orange-900",
+  [TICKET_STATUS.Closed]:
+    "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-900",
+  [TICKET_STATUS.Cancelled]:
+    "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-900",
 };
 
 export function normalizeStatus(status) {
@@ -50,7 +54,10 @@ export function getStatusLabel(status) {
 
 export function getStatusStyle(status) {
   const key = normalizeStatus(status);
-  return STYLES[key] ?? "bg-zinc-50 text-zinc-600 ring-zinc-200";
+  return (
+    STYLES[key] ??
+    "bg-zinc-50 text-zinc-600 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-zinc-700"
+  );
 }
 
 export function isNewStatus(status) {
